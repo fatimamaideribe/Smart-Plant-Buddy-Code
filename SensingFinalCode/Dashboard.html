@@ -1,0 +1,1051 @@
+<!--AI was used for debugging and for aesthetics-->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Smart Plant Buddy</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { 
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif; 
+      max-width: 720px; 
+      margin: 2rem auto; 
+      padding: 0 1rem;
+    }
+    .card { 
+      border: 1px solid #ddd; 
+      border-radius: 12px; 
+      padding: 16px; 
+      margin: 12px 0; 
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    }
+    .big { 
+      font-size: 48px; 
+      margin-bottom: 8px;
+    }
+    .row { 
+      display: flex; 
+      gap: 12px; 
+      flex-wrap: wrap; 
+      margin: 8px 0;
+    }
+    .pill { 
+      padding: 6px 10px; 
+      border-radius: 999px; 
+      background:#f3f3f3; 
+      font-size: 14px;
+    }
+    label { 
+      font-size: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+    select {
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+    #advice {
+      margin-top: 12px;
+      font-size: 14px;
+    }
+    #advice ul {
+      padding-left: 20px;
+      margin: 6px 0 0;
+    }
+    #advice li {
+      margin-bottom: 2px;
+    }
+    small { color: #666; }
+    h4 { margin-top: 16px; margin-bottom: 4px; }
+    
+    /* Carousel styles */
+    .carousel-container {
+      position: relative;
+      margin: 16px 0;
+      background: #fafafa;
+      padding: 12px;
+      border-radius: 8px;
+    }
+    .carousel-slide {
+      display: none;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+    }
+    .carousel-slide.active {
+      display: block;
+      opacity: 1;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .carousel-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 12px 0;
+      gap: 8px;
+    }
+    .carousel-btn {
+      padding: 8px 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: white;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .carousel-btn:hover:not(:disabled) {
+      background: #f3f3f3;
+      border-color: #999;
+    }
+    .carousel-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .carousel-indicators {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex: 1;
+    }
+    .carousel-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ddd;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .carousel-indicator.active {
+      background: #4CAF50;
+      width: 24px;
+      border-radius: 4px;
+    }
+    .carousel-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      text-align: center;
+      color: #333;
+      padding: 8px;
+      background: linear-gradient(to right, #f8f9fa, #fff, #f8f9fa);
+      border-radius: 6px;
+    }
+    
+    /* History list styles */
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .history-header:hover {
+      opacity: 0.7;
+    }
+    .history-toggle {
+      font-size: 12px;
+      color: #666;
+      background: #f3f3f3;
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+    }
+    .history-toggle:hover {
+      background: #e0e0e0;
+    }
+    .history-list-container {
+      max-height: 200px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      border: 1px solid #eee;
+      border-radius: 6px;
+      padding: 8px;
+      margin-top: 8px;
+      display: none;
+    }
+    .history-list-container.expanded {
+      display: block;
+    }
+    .history-list-container::-webkit-scrollbar {
+      width: 6px;
+    }
+    .history-list-container::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 3px;
+    }
+    .history-list-container::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 3px;
+    }
+    .history-list-container::-webkit-scrollbar-thumb:hover {
+      background: #999;
+    }
+    #list {
+      margin: 0;
+      padding-left: 20px;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    #list li {
+      margin-bottom: 4px;
+      color: #555;
+    }
+    .history-summary {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+    }
+    
+    /* Time range filter */
+    .time-filter {
+      display: flex;
+      gap: 8px;
+      margin: 12px 0;
+      flex-wrap: wrap;
+    }
+    .time-filter-btn {
+      padding: 6px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      background: white;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    .time-filter-btn:hover {
+      background: #f3f3f3;
+      border-color: #999;
+    }
+    .time-filter-btn.active {
+      background: #4CAF50;
+      color: white;
+      border-color: #4CAF50;
+    }
+    
+    /* Stats card */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin: 12px 0;
+    }
+    .stat-box {
+      background: #f8f9fa;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .stat-label {
+      font-size: 11px;
+      color: #666;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .stat-value {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+    }
+    .stat-value.good { color: #4CAF50; }
+    .stat-value.warn { color: #FF9800; }
+    .stat-value.bad { color: #f44336; }
+    
+    /* Export button */
+    .export-btn {
+      padding: 8px 16px;
+      background: #2196F3;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      margin-top: 8px;
+      transition: all 0.2s;
+    }
+    .export-btn:hover {
+      background: #1976D2;
+    }
+  </style>
+
+  <!-- Firebase compat SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h1>🌿 Smart Plant Buddy</h1>
+
+  <div class="card">
+    <label>
+      Plant type:
+      <select id="plantSelect">
+        <option value="">(loading…)</option>
+      </select>
+    </label>
+
+    <div id="mood" class="big">…</div>
+
+    <div class="row">
+      <div class="pill" id="soil">soil: –</div>
+      <div class="pill" id="light">light: –</div>
+      <div class="pill" id="temp">temp: –</div>
+      <div class="pill" id="hum">hum: –</div>
+    </div>
+
+    <small id="time">—</small>
+
+    <div id="advice"></div>
+  </div>
+
+  <!-- Statistics Summary Card -->
+  <div class="card">
+    <h3 style="margin-top: 0;">📊 Summary Statistics</h3>
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-box">
+        <div class="stat-label">Avg Soil</div>
+        <div class="stat-value" id="avgSoil">—</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Avg Temp</div>
+        <div class="stat-value" id="avgTemp">—</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Avg Light</div>
+        <div class="stat-value" id="avgLight">—</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Avg Humidity</div>
+        <div class="stat-value" id="avgHum">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+      <h3 style="margin: 0;">📈 Historical Data</h3>
+      <button class="export-btn" id="exportBtn">📥 Export CSV</button>
+    </div>
+    
+    <!-- Time Range Filter -->
+    <div class="time-filter">
+      <span style="font-size: 13px; color: #666; align-self: center;">Show:</span>
+      <button class="time-filter-btn" data-range="24h">Last 24h</button>
+      <button class="time-filter-btn" data-range="3d">Last 3 Days</button>
+      <button class="time-filter-btn active" data-range="7d">Last 7 Days</button>
+      <button class="time-filter-btn" data-range="all">All Data</button>
+    </div>
+    
+    <div class="history-summary" id="historySummary">0 entries</div>
+    
+    <div class="history-header" id="historyHeader" style="margin-top: 12px;">
+      <h4 style="margin: 0;">Detailed List</h4>
+      <button class="history-toggle" id="historyToggle">Show</button>
+    </div>
+    <div class="history-list-container" id="historyListContainer">
+      <ul id="list"></ul>
+    </div>
+
+    <div class="carousel-container">
+      <div class="carousel-title" id="carouselTitle">Soil Moisture</div>
+      
+      <div class="carousel-slide active" data-chart="soil">
+        <canvas id="soilChart" height="150"></canvas>
+      </div>
+      
+      <div class="carousel-slide" data-chart="light">
+        <canvas id="lightChart" height="150"></canvas>
+      </div>
+      
+      <div class="carousel-slide" data-chart="temp">
+        <canvas id="tempChart" height="150"></canvas>
+      </div>
+      
+      <div class="carousel-slide" data-chart="hum">
+        <canvas id="humChart" height="150"></canvas>
+      </div>
+
+      <div class="carousel-nav">
+        <button class="carousel-btn" id="prevBtn">← Previous</button>
+        <div class="carousel-indicators">
+          <div class="carousel-indicator active" data-index="0"></div>
+          <div class="carousel-indicator" data-index="1"></div>
+          <div class="carousel-indicator" data-index="2"></div>
+          <div class="carousel-indicator" data-index="3"></div>
+        </div>
+        <button class="carousel-btn" id="nextBtn">Next →</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // firebaseConfig:
+  const firebaseConfig = {
+    apiKey: "********************************",//redacted for privacy
+    authDomain: "smartplantsensor.firebaseapp.com",
+    databaseURL: "https://smartplantsensor-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "smartplantsensor",
+    storageBucket: "smartplantsensor.firebasestorage.app",
+    messagingSenderId: "71943027908",
+    appId: "1:71943027908:web:4f0fe942aa9cb9c1355d91",
+    measurementId: "G-2TGJY75G9G"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  //  DOM elements 
+  const plantSelect = document.getElementById("plantSelect");
+  const moodEl  = document.getElementById("mood");
+  const soilEl  = document.getElementById("soil");
+  const lightEl = document.getElementById("light");
+  const tempEl  = document.getElementById("temp");
+  const humEl   = document.getElementById("hum");
+  const timeEl  = document.getElementById("time");
+  const adviceEl = document.getElementById("advice");
+  const listEl  = document.getElementById("list");
+  const historyHeader = document.getElementById("historyHeader");
+  const historyToggle = document.getElementById("historyToggle");
+  const historyListContainer = document.getElementById("historyListContainer");
+  const historySummary = document.getElementById("historySummary");
+  const exportBtn = document.getElementById("exportBtn");
+  let historyExpanded = false;
+  
+  // stats elements
+  const avgSoilEl = document.getElementById("avgSoil");
+  const avgTempEl = document.getElementById("avgTemp");
+  const avgLightEl = document.getElementById("avgLight");
+  const avgHumEl = document.getElementById("avgHum");
+  
+  // Time range filter state
+  let currentTimeRange = "7d";  // Default to 7 days
+  let allEntriesData = [];  // Store all data
+
+  // ------- Carousel elements -------
+  const carouselSlides = document.querySelectorAll(".carousel-slide");
+  const carouselIndicators = document.querySelectorAll(".carousel-indicator");
+  const prevBtn = document.getElementById("prevBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const carouselTitle = document.getElementById("carouselTitle");
+  let currentSlide = 0;
+  const chartTitles = ["Soil Moisture", "Light Level", "Temperature", "Humidity"];
+
+  //  Charts Section
+  let soilChart = null;
+  let lightChart = null;
+  let tempChart = null;
+  let humChart  = null;
+
+  function initCharts() {
+    const soilCtx  = document.getElementById("soilChart").getContext("2d");
+    const lightCtx = document.getElementById("lightChart").getContext("2d");
+    const tempCtx  = document.getElementById("tempChart").getContext("2d");
+    const humCtx   = document.getElementById("humChart").getContext("2d");
+
+    // Common chart options for cleaner display "AI Helped with this section"
+    const commonOptions = {
+      responsive: true,
+      maintainAspectRatio: true,
+      interaction: {
+        mode: 'index',
+        intersect: false,
+      },
+      plugins: {
+        legend: {
+          display: false  // Hide legend to save space
+        },
+        tooltip: {
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          padding: 12,
+          titleFont: { size: 14, weight: 'bold' },
+          bodyFont: { size: 13 },
+          displayColors: false
+        }
+      },
+      animation: {
+        duration: 300  // Faster, smoother updates
+      }
+    };
+
+    soilChart = new Chart(soilCtx, {
+      type: "line",
+      data: { 
+        labels: [], 
+        datasets: [{ 
+          label: "Soil Moisture",
+          data: [],
+          borderColor: '#8B4513',
+          backgroundColor: 'rgba(139, 69, 19, 0.1)',
+          borderWidth: 2,
+          tension: 0.4,
+          fill: true,
+          pointRadius: 1,
+          pointHoverRadius: 5
+        }] 
+      },
+      options: {
+        ...commonOptions,
+        scales: {
+          x: { 
+            grid: { display: false },
+            ticks: {
+              maxRotation: 45,
+              minRotation: 45,
+              autoSkip: true,
+              maxTicksLimit: 8,  // Show max 8 labels
+              font: { size: 10 }
+            }
+          },
+          y: { 
+            title: { display: true, text: "Soil Value", font: { size: 12, weight: 'bold' } },
+            grid: { color: 'rgba(0, 0, 0, 0.05)' },
+            ticks: { font: { size: 11 } }
+          }
+        }
+      }
+    });
+
+    lightChart = new Chart(lightCtx, {
+      type: "line",
+      data: { 
+        labels: [], 
+        datasets: [{ 
+          label: "Light Level",
+          data: [],
+          borderColor: '#FFD700',
+          backgroundColor: 'rgba(255, 215, 0, 0.1)',
+          borderWidth: 2,
+          tension: 0.4,
+          fill: true,
+          pointRadius: 1,
+          pointHoverRadius: 5
+        }] 
+      },
+      options: {
+        ...commonOptions,
+        scales: {
+          x: { 
+            grid: { display: false },
+            ticks: {
+              maxRotation: 45,
+              minRotation: 45,
+              autoSkip: true,
+              maxTicksLimit: 8,
+              font: { size: 10 }
+            }
+          },
+          y: { 
+            title: { display: true, text: "Light Value", font: { size: 12, weight: 'bold' } },
+            grid: { color: 'rgba(0, 0, 0, 0.05)' },
+            ticks: { font: { size: 11 } }
+          }
+        }
+      }
+    });
+
+    tempChart = new Chart(tempCtx, {
+      type: "line",
+      data: { 
+        labels: [], 
+        datasets: [{ 
+          label: "Temperature",
+          data: [],
+          borderColor: '#FF6347',
+          backgroundColor: 'rgba(255, 99, 71, 0.1)',
+          borderWidth: 2,
+          tension: 0.4,
+          fill: true,
+          pointRadius: 1,
+          pointHoverRadius: 5
+        }] 
+      },
+      options: {
+        ...commonOptions,
+        scales: {
+          x: { 
+            grid: { display: false },
+            ticks: {
+              maxRotation: 45,
+              minRotation: 45,
+              autoSkip: true,
+              maxTicksLimit: 8,
+              font: { size: 10 }
+            }
+          },
+          y: { 
+            title: { display: true, text: "°C", font: { size: 12, weight: 'bold' } },
+            grid: { color: 'rgba(0, 0, 0, 0.05)' },
+            ticks: { font: { size: 11 } }
+          }
+        }
+      }
+    });
+
+    humChart = new Chart(humCtx, {
+      type: "line",
+      data: { 
+        labels: [], 
+        datasets: [{ 
+          label: "Humidity",
+          data: [],
+          borderColor: '#4A90E2',
+          backgroundColor: 'rgba(74, 144, 226, 0.1)',
+          borderWidth: 2,
+          tension: 0.4,
+          fill: true,
+          pointRadius: 1,
+          pointHoverRadius: 5
+        }] 
+      },
+      options: {
+        ...commonOptions,
+        scales: {
+          x: { 
+            grid: { display: false },
+            ticks: {
+              maxRotation: 45,
+              minRotation: 45,
+              autoSkip: true,
+              maxTicksLimit: 8,
+              font: { size: 10 }
+            }
+          },
+          y: { 
+            title: { display: true, text: "%", font: { size: 12, weight: 'bold' } },
+            grid: { color: 'rgba(0, 0, 0, 0.05)' },
+            ticks: { font: { size: 11 } },
+            beginAtZero: true,
+            max: 100
+          }
+        }
+      }
+    });
+  }
+
+  // Plant type state 
+  let plantTypes = {};
+  let selectedPlantId = null;
+  let selectedPlantProfile = null;
+
+  function statusFor(value, range) {
+    if (!range || value == null) return { status: "unknown" };
+    if (value < range.min) return { status: "low" };
+    if (value > range.max) return { status: "high" };
+    return { status: "ok" };
+  }
+
+  // Carousel 
+  function showSlide(index) {
+    if (index < 0) index = carouselSlides.length - 1;
+    if (index >= carouselSlides.length) index = 0;
+    currentSlide = index;
+
+    carouselSlides.forEach((slide, i) => {
+      slide.classList.toggle("active", i === currentSlide);
+    });
+    carouselIndicators.forEach((indicator, i) => {
+      indicator.classList.toggle("active", i === currentSlide);
+    });
+    carouselTitle.textContent = chartTitles[currentSlide];
+
+    const activeSlide = carouselSlides[currentSlide];
+    const chartId = activeSlide.dataset.chart;
+    let chart = null;
+    if (chartId === "soil") chart = soilChart;
+    else if (chartId === "light") chart = lightChart;
+    else if (chartId === "temp") chart = tempChart;
+    else if (chartId === "hum") chart = humChart;
+    if (chart) setTimeout(() => chart.resize(), 100);
+  }
+
+  prevBtn.addEventListener("click", () => showSlide(currentSlide - 1));
+  nextBtn.addEventListener("click", () => showSlide(currentSlide + 1));
+  carouselIndicators.forEach((indicator, index) => {
+    indicator.addEventListener("click", () => showSlide(index));
+  });
+
+  //  History toggle 
+  function toggleHistory() {
+    historyExpanded = !historyExpanded;
+    historyListContainer.classList.toggle("expanded", historyExpanded);
+    historyToggle.textContent = historyExpanded ? "Hide" : "Show";
+  }
+  historyHeader.addEventListener("click", toggleHistory);
+  historyToggle.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleHistory();
+  });
+  
+  //  Time range filtering 
+  function filterByTimeRange(entries, range) {
+    if (range === "all") return entries;
+    
+    const now = Date.now();
+    let cutoff;
+    
+    switch(range) {
+      case "24h":
+        cutoff = now - (24 * 60 * 60 * 1000);
+        break;
+      case "3d":
+        cutoff = now - (3 * 24 * 60 * 60 * 1000);
+        break;
+      case "7d":
+        cutoff = now - (7 * 24 * 60 * 60 * 1000);
+        break;
+      default:
+        return entries;
+    }
+    
+    return entries.filter(e => e.timestampNum >= cutoff);
+  }
+  
+  //  Stats calculation 
+  function calculateStats(entries) {
+    if (entries.length === 0) {
+      avgSoilEl.textContent = "—";
+      avgTempEl.textContent = "—";
+      avgLightEl.textContent = "—";
+      avgHumEl.textContent = "—";
+      return;
+    }
+    
+    const soilValues = entries.map(e => e.soil_raw).filter(v => v != null);
+    const tempValues = entries.map(e => e.temp_c).filter(v => v != null && v > -50);
+    const lightValues = entries.map(e => e.light_raw).filter(v => v != null);
+    const humValues = entries.map(e => e.hum).filter(v => v != null && v >= 0);
+    
+    const avg = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
+    
+    if (soilValues.length) {
+      const avgSoil = Math.round(avg(soilValues));
+      avgSoilEl.textContent = avgSoil;
+      avgSoilEl.className = "stat-value";
+      if (avgSoil < 1500) avgSoilEl.classList.add("bad");
+      else if (avgSoil > 3100) avgSoilEl.classList.add("warn");
+      else avgSoilEl.classList.add("good");
+    }
+    
+    if (tempValues.length) {
+      const avgTemp = avg(tempValues).toFixed(1);
+      avgTempEl.textContent = avgTemp + "°C";
+      avgTempEl.className = "stat-value";
+      if (avgTemp < 18 || avgTemp > 26) avgTempEl.classList.add("warn");
+      else avgTempEl.classList.add("good");
+    }
+    
+    if (lightValues.length) {
+      const avgLight = Math.round(avg(lightValues));
+      avgLightEl.textContent = avgLight;
+      avgLightEl.className = "stat-value";
+      if (avgLight < 800 || avgLight > 2500) avgLightEl.classList.add("warn");
+      else avgLightEl.classList.add("good");
+    }
+    
+    if (humValues.length) {
+      const avgHum = Math.round(avg(humValues));
+      avgHumEl.textContent = avgHum + "%";
+      avgHumEl.className = "stat-value";
+      if (avgHum < 50) avgHumEl.classList.add("warn");
+      else avgHumEl.classList.add("good");
+    }
+  }
+  
+  //  Data sampling for performance 
+  function sampleData(entries, maxPoints = 200) {
+    if (entries.length <= maxPoints) return entries;
+    
+    const step = Math.ceil(entries.length / maxPoints);
+    const sampled = [];
+    
+    for (let i = 0; i < entries.length; i += step) {
+      sampled.push(entries[i]);
+    }
+    
+    if (sampled[sampled.length - 1] !== entries[entries.length - 1]) {
+      sampled.push(entries[entries.length - 1]);
+    }
+    
+    return sampled;
+  }
+  
+  //  Export to CSV 
+  function exportToCSV() {
+    if (allEntriesData.length === 0) {
+      alert("No data to export!");
+      return;
+    }
+    
+    const filtered = filterByTimeRange(allEntriesData, currentTimeRange);
+    
+    // Create CSV header
+    let csv = "Timestamp,Date,Soil,Light,Temperature,Humidity,Mood\n";
+    
+    // Add data rows
+    filtered.forEach(e => {
+      const date = e.timestampNum > 0 ? new Date(e.timestampNum).toISOString() : "N/A";
+      csv += `${e.timestampNum},"${date}",${e.soil_raw},${e.light_raw},${e.temp_c},${e.hum},"${e.mood}"\n`;
+    });
+    
+    // Download
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `plant-data-${currentTimeRange}-${Date.now()}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  }
+  
+  exportBtn.addEventListener("click", exportToCSV);
+  
+  //  Time filter buttons 
+  document.querySelectorAll(".time-filter-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      currentTimeRange = btn.dataset.range;
+      document.querySelectorAll(".time-filter-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      
+      // Re-render with filtered data
+      updateDisplayWithData(allEntriesData);
+    });
+  });
+
+  //  Load plant types 
+  const plantTypesRef = db.ref("plantTypes");
+  plantTypesRef.on("value", snap => {
+    plantTypes = snap.val() || {};
+    plantSelect.innerHTML = "";
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "Choose your plant";
+    plantSelect.appendChild(placeholder);
+
+    Object.entries(plantTypes).forEach(([id, p]) => {
+      const opt = document.createElement("option");
+      opt.value = id;
+      opt.textContent = p.name || id;
+      plantSelect.appendChild(opt);
+    });
+
+    const saved = localStorage.getItem("plantTypeId");
+    if (saved && plantTypes[saved]) {
+      plantSelect.value = saved;
+      selectedPlantId = saved;
+      selectedPlantProfile = plantTypes[saved];
+    }
+  });
+
+  plantSelect.addEventListener("change", () => {
+    const id = plantSelect.value;
+    if (id && plantTypes[id]) {
+      selectedPlantId = id;
+      selectedPlantProfile = plantTypes[id];
+      localStorage.setItem("plantTypeId", id);
+    
+    } else {
+      selectedPlantId = null;
+      selectedPlantProfile = null;
+      localStorage.removeItem("plantTypeId");
+      // db.ref("plants/plant1/plantType").set(null);
+    }
+  });
+
+  //  Update display with filtered data 
+  function updateDisplayWithData(allData) {
+    if (allData.length === 0) {
+      historySummary.textContent = "0 entries";
+      listEl.innerHTML = "";
+      moodEl.textContent = "…";
+      adviceEl.textContent = "Waiting for data from your Smart Plant Buddy.";
+      avgSoilEl.textContent = "—";
+      avgTempEl.textContent = "—";
+      avgLightEl.textContent = "—";
+      avgHumEl.textContent = "—";
+      if (soilChart && lightChart && tempChart && humChart) {
+        [soilChart, lightChart, tempChart, humChart].forEach(ch => {
+          ch.data.labels = [];
+          ch.data.datasets[0].data = [];
+          ch.update();
+        });
+      }
+      return;
+    }
+    
+    // Apply time filter
+    const filteredEntries = filterByTimeRange(allData, currentTimeRange);
+    
+    if (filteredEntries.length === 0) {
+      historySummary.textContent = `0 entries in selected range (${allData.length} total)`;
+      return;
+    }
+    
+    const maxTs = Math.max(...allData.map(e => e.timestampNum));
+    const isEpoch = maxTs > 1e11;
+    
+    historySummary.textContent = `${filteredEntries.length} ${filteredEntries.length === 1 ? "entry" : "entries"} (showing ${currentTimeRange})`;
+    
+    // Calculate stats on filtered data
+    calculateStats(filteredEntries);
+    
+    listEl.innerHTML = "";
+    filteredEntries.forEach((e, idx) => {
+      let label;
+      if (isEpoch && e.timestampNum > 0) {
+        label = new Date(e.timestampNum).toLocaleString();
+      } else {
+        label = `Reading #${idx + 1}`;
+      }
+      const li = document.createElement("li");
+      li.textContent = `${label} | soil=${e.soil_raw} light=${e.light_raw} temp=${e.temp_c}°C hum=${e.hum}% mood=${e.mood}`;
+      listEl.appendChild(li);
+    });
+    
+    const last = filteredEntries[filteredEntries.length - 1];
+    
+    // ---- Chart data with smarter labels ----
+    // Sample data for performance
+    const sampledEntries = sampleData(filteredEntries, 200);
+    const totalReadings = sampledEntries.length;
+    
+    const labels = sampledEntries.map((e, idx) => {
+      if (isEpoch && e.timestampNum > 0) {
+        const d = new Date(e.timestampNum);
+        if (totalReadings > 150) {
+          return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit' });
+        } else if (totalReadings > 50) {
+          return d.toLocaleString(undefined, { weekday: 'short', hour: '2-digit', minute: '2-digit' });
+        } else {
+          return d.toLocaleString(undefined, { hour: '2-digit', minute: '2-digit' });
+        }
+      } else {
+        return `#${idx + 1}`;
+      }
+    });
+    
+    const soilData = sampledEntries.map(e => e.soil_raw);
+    const lightData = sampledEntries.map(e => e.light_raw);
+    const tempData = sampledEntries.map(e => e.temp_c);
+    const humData = sampledEntries.map(e => e.hum);
+    
+    if (soilChart && lightChart && tempChart && humChart) {
+      soilChart.data.labels = labels;
+      soilChart.data.datasets[0].data = soilData;
+      soilChart.update('none'); // Skip animation for faster updates
+      
+      lightChart.data.labels = labels;
+      lightChart.data.datasets[0].data = lightData;
+      lightChart.update('none');
+      
+      tempChart.data.labels = labels;
+      tempChart.data.datasets[0].data = tempData;
+      tempChart.update('none');
+      
+      humChart.data.labels = labels;
+      humChart.data.datasets[0].data = humData;
+      humChart.update('none');
+    }
+    
+    // ---- Main readings & mood (use last from filtered data) ----
+    const moodMap = { happy:"😊", ok:"😐", thirsty:"🥺", hot: "😡", drowning: "😰" };
+    moodEl.textContent = moodMap[last.mood] || "🙂";
+    soilEl.textContent = `soil: ${last.soil_raw}`;
+    lightEl.textContent = `light: ${last.light_raw}`;
+    tempEl.textContent = `temp: ${Number(last.temp_c).toFixed(1)}°C`;
+    humEl.textContent = `hum: ${Number(last.hum).toFixed(0)}%`;
+    
+    if (isEpoch && last.timestampNum > 0) {
+      timeEl.textContent = `last update: ${new Date(last.timestampNum).toLocaleString()}`;
+    } else {
+      timeEl.textContent = `last update: latest reading (#${filteredEntries.length})`;
+    }
+    
+    // ---- Plant-specific advice ----
+    if (!selectedPlantProfile) {
+      adviceEl.textContent = "Select your plant type above to see care advice.";
+      return;
+    }
+    
+    const soilStatus = statusFor(last.soil_raw, selectedPlantProfile.water);
+    const lightStatus = statusFor(last.light_raw, selectedPlantProfile.light);
+    const tempStatus = statusFor(last.temp_c, selectedPlantProfile.temp);
+    const humStatus = statusFor(last.hum, selectedPlantProfile.humidity);
+    
+    let messages = [];
+    if (soilStatus.status === "low") messages.push("💧 Soil is too dry – water your plant!");
+    if (soilStatus.status === "high") messages.push("⚠️ Soil is too wet – reduce watering or improve drainage.");
+    if (lightStatus.status === "low") messages.push("☀️ Too dark – move to a brighter spot.");
+    if (lightStatus.status === "high") messages.push("🌤️ Too bright – try indirect light.");
+    if (tempStatus.status === "low") messages.push("🧊 Too cold for this plant.");
+    if (tempStatus.status === "high") messages.push("🔥 Too hot – move to a cooler location.");
+    if (humStatus.status === "low") messages.push("💨 Air is too dry – consider misting or a humidifier.");
+    if (humStatus.status === "high") messages.push("💦 Humidity is high (usually OK).");
+    
+    if (messages.length === 0) {
+      adviceEl.textContent = `${selectedPlantProfile.name} is within its preferred range 💚`;
+    } else {
+      adviceEl.innerHTML = `
+        <strong>Care tips for ${selectedPlantProfile.name}:</strong>
+        <ul>${messages.map(m => `<li>${m}</li>`).join("")}</ul>
+      `;
+    }
+  }
+
+  // ------- Live sensor data listener -------
+  // For 1 week at 15min intervals = ~672 readings
+  // For 1 week at 10min intervals = ~1008 readings
+  const listRef = db.ref("plants/plant1/logs").limitToLast(700);
+
+  listRef.on("value", snap => {
+    const data = snap.val() || {};
+    console.log("Raw Firebase data:", data);
+
+    let entries = Object.entries(data);
+    if (entries.length === 0) {
+      allEntriesData = [];
+      updateDisplayWithData(allEntriesData);
+      return;
+    }
+
+    // Normalize timestamps and keep original order fallback
+    let withTs = entries.map(([key, v], idx) => {
+      const t = Number(v.timestamp);
+      return {
+        key,
+        index: idx,
+        ...v,
+        timestampNum: isNaN(t) ? 0 : t
+      };
+    });
+
+    // Sort primarily by timestamp if present, else by original order
+    withTs.sort((a, b) => {
+      if (a.timestampNum && b.timestampNum) return a.timestampNum - b.timestampNum;
+      if (a.timestampNum) return -1;
+      if (b.timestampNum) return 1;
+      return a.index - b.index;
+    });
+
+    // Store all data and update display with filter
+    allEntriesData = withTs;
+    console.log(`Loaded ${allEntriesData.length} entries from Firebase`);
+    
+    // Update display with current filter
+    updateDisplayWithData(allEntriesData);
+  });
+
+  // Init charts + first slide
+  initCharts();
+  showSlide(0);
+</script>
+</body>
+</html>
