@@ -239,4 +239,4 @@ ax4.set_title('Correlations', fontweight='bold')
 
 fig.suptitle('Plant Sensor Dashboard', fontsize=16, fontweight='bold')
 plt.savefig('dashboard_overview.png', dpi=300, bbox_inches='tight')
-print("✓ Saved: dashboard_overview.png")
+print("saved dashboard_overview.png")

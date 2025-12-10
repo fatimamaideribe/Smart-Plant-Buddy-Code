@@ -29,7 +29,7 @@ WebSocketsServer webSocket(81);  // WebSocket on port 81
 // WIFI & FIREBASE 
 const char* WIFI_SSID = "*****";
 const char* WIFI_PASS = "*****"; // redacted for privacy
-const char* FIREBASE_DB_URL = "https://smartplantsensor-default-rtdb.europe-west1.firebasedatabase.app";
+const char* FIREBASE_DB_URL = "**"; // redacted for privacy
 
 //  TIMING 
 unsigned long lastPost = 0;
